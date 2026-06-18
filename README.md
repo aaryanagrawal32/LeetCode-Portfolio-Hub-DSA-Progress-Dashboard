@@ -38,7 +38,7 @@ Make sure you have [Node.js](https://nodejs.org/) installed (version 18+ is reco
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/aaryanagrawal32/Leetcode-summary.git
+   git clone https://github.com/aaryanagrawal32/LeetCode-Portfolio-Hub-DSA-Progress-Dashboard.git
    cd Leetcode-summary
    ```
 
