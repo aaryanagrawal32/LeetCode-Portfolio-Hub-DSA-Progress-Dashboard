@@ -25,7 +25,8 @@ import {
   Copy,
   Check,
   Sun,
-  Moon
+  Moon,
+  Users
 } from 'lucide-react';
 import { mockTagsData } from './mockData';
 import CodeBlock from './components/CodeBlock';
@@ -104,6 +105,64 @@ export default function App() {
   const [inputUsername, setInputUsername] = useState('68yxxnyWG8');
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState(null);
+
+  // Rival Duel Mode States
+  const [rivalInputName, setRivalInputName] = useState(() => localStorage.getItem('rivalUsername') || '');
+  const [rivalProfileData, setRivalProfileData] = useState(() => {
+    try {
+      const stored = localStorage.getItem('rivalProfileData');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [rivalSkillsData, setRivalSkillsData] = useState(() => {
+    try {
+      const stored = localStorage.getItem('rivalSkillsData');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [rivalBadgesData, setRivalBadgesData] = useState(() => {
+    try {
+      const stored = localStorage.getItem('rivalBadgesData');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [syncingRival, setSyncingRival] = useState(false);
+  const [rivalSyncError, setRivalSyncError] = useState(null);
+  const [isDuelActive, setIsDuelActive] = useState(() => localStorage.getItem('isDuelActive') === 'true');
+
+  useEffect(() => {
+    if (rivalProfileData) {
+      localStorage.setItem('rivalProfileData', JSON.stringify(rivalProfileData));
+    } else {
+      localStorage.removeItem('rivalProfileData');
+    }
+  }, [rivalProfileData]);
+
+  useEffect(() => {
+    if (rivalSkillsData) {
+      localStorage.setItem('rivalSkillsData', JSON.stringify(rivalSkillsData));
+    } else {
+      localStorage.removeItem('rivalSkillsData');
+    }
+  }, [rivalSkillsData]);
+
+  useEffect(() => {
+    if (rivalBadgesData) {
+      localStorage.setItem('rivalBadgesData', JSON.stringify(rivalBadgesData));
+    } else {
+      localStorage.removeItem('rivalBadgesData');
+    }
+  }, [rivalBadgesData]);
+
+  useEffect(() => {
+    localStorage.setItem('isDuelActive', isDuelActive);
+  }, [isDuelActive]);
   
   const [profileData, setProfileData] = useState({
     username: '68yxxnyWG8',
@@ -195,11 +254,12 @@ export default function App() {
       const cleanUsername = usernameToSync.trim();
       
       // Fetch all endpoints in parallel to optimize load time
-      const [profileRes, skillRes, badgesRes, calendarRes] = await Promise.all([
+      const [profileRes, skillRes, badgesRes, calendarRes, acSubRes] = await Promise.all([
         fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/profile`),
         fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/skill`).catch(() => null),
         fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/badges`).catch(() => null),
-        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/calendar`).catch(() => null)
+        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/calendar`).catch(() => null),
+        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/acSubmission`).catch(() => null)
       ]);
       
       if (!profileRes || !profileRes.ok) {
@@ -234,6 +294,16 @@ export default function App() {
         }
       }
 
+      let acSubInfo = { count: 0, submission: [] };
+      if (acSubRes && acSubRes.ok) {
+        try {
+          acSubInfo = await acSubRes.json();
+        } catch (e) {
+          console.error("Error parsing accepted submissions JSON:", e);
+        }
+      }
+      const subList = (acSubInfo && acSubInfo.submission) ? acSubInfo.submission : [];
+
       setProfileData({
         username: cleanUsername,
         name: profileInfo.name || profileInfo.username || cleanUsername,
@@ -247,7 +317,12 @@ export default function App() {
         hardSolved: profileInfo.hardSolved || 0,
         totalHard: profileInfo.totalHard || DEFAULT_TOTAL_HARD,
         totalQuestions: profileInfo.totalQuestions || DEFAULT_TOTAL_QUESTIONS,
-        recentSubmissions: profileInfo.recentSubmissions || [],
+        recentSubmissions: subList.map(s => ({
+          title: s.title,
+          titleSlug: s.titleSlug,
+          status: s.statusDisplay || 'Accepted',
+          lang: s.lang || 'cpp'
+        })),
         totalSubmissions: profileInfo.totalSubmissions || []
       });
 
@@ -259,6 +334,150 @@ export default function App() {
       setSyncError(err.message || "Failed to sync LeetCode profile. Please verify username.");
     } finally {
       setSyncing(false);
+    }
+  };
+
+  // Mock Rival profile data for demonstration fallback
+  const MOCK_RIVAL_DATA = {
+    profile: {
+      username: 'leetcode_challenger',
+      name: 'ByteCrusher',
+      ranking: '82,140',
+      avatar: 'https://assets.leetcode.com/users/default_avatar.jpg',
+      totalSolved: 615,
+      easySolved: 220,
+      totalEasy: 830,
+      mediumSolved: 335,
+      totalMedium: 1620,
+      hardSolved: 60,
+      totalHard: 700,
+      totalQuestions: 3150,
+      recentSubmissions: [
+        { title: "Two Sum", titleSlug: "two-sum", status: "Accepted", difficulty: "Easy" },
+        { title: "Longest Palindromic Substring", titleSlug: "longest-palindromic-substring", status: "Accepted", difficulty: "Medium" },
+        { title: "Merge k Sorted Lists", titleSlug: "merge-k-sorted-lists", status: "Accepted", difficulty: "Hard" },
+        { title: "Edit Distance", titleSlug: "edit-distance", status: "Accepted", difficulty: "Hard" },
+        { title: "Binary Tree Maximum Path Sum", titleSlug: "binary-tree-maximum-path-sum", status: "Accepted", difficulty: "Hard" },
+        { title: "Regular Expression Matching", titleSlug: "regular-expression-matching", status: "Accepted", difficulty: "Hard" },
+        { title: "Valid Parentheses", titleSlug: "valid-parentheses", status: "Accepted", difficulty: "Easy" },
+        { title: "Subarray Sum Equals K", titleSlug: "subarray-sum-equals-k", status: "Accepted", difficulty: "Medium" },
+        { title: "Container With Most Water", titleSlug: "container-with-most-water", status: "Accepted", difficulty: "Medium" },
+        { title: "Climbing Stairs", titleSlug: "climbing-stairs", status: "Accepted", difficulty: "Easy" }
+      ]
+    },
+    skills: {
+      fundamental: [
+        { tagSlug: 'array', problemsSolved: 120 },
+        { tagSlug: 'string', problemsSolved: 90 },
+        { tagSlug: 'sorting', problemsSolved: 50 }
+      ],
+      intermediate: [
+        { tagSlug: 'dynamic-programming', problemsSolved: 75 },
+        { tagSlug: 'depth-first-search', problemsSolved: 65 },
+        { tagSlug: 'binary-search', problemsSolved: 45 },
+        { tagSlug: 'greedy', problemsSolved: 30 }
+      ],
+      advanced: [
+        { tagSlug: 'graph', problemsSolved: 25 }
+      ]
+    },
+    badges: {
+      badgesCount: 12,
+      badges: [],
+      upcomingBadges: [],
+      activeBadge: null
+    }
+  };
+
+  // Sync rival profile function
+  const handleSyncRival = async (usernameToSync) => {
+    if (!usernameToSync.trim()) return;
+    setSyncingRival(true);
+    setRivalSyncError(null);
+    try {
+      const cleanUsername = usernameToSync.trim();
+      localStorage.setItem('rivalUsername', cleanUsername);
+
+      if (cleanUsername.toLowerCase() === 'rival_demo' || cleanUsername.toLowerCase() === 'demo') {
+        // Simulate loading for 1s
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setRivalProfileData(MOCK_RIVAL_DATA.profile);
+        setRivalSkillsData(MOCK_RIVAL_DATA.skills);
+        setRivalBadgesData(MOCK_RIVAL_DATA.badges);
+        setIsDuelActive(true);
+        return;
+      }
+      
+      // Fetch rival profile, skills, badges, and accepted submissions in parallel
+      const [profileRes, skillRes, badgesRes, acSubRes] = await Promise.all([
+        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/profile`),
+        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/skill`).catch(() => null),
+        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/badges`).catch(() => null),
+        fetch(`https://alfa-leetcode-api.onrender.com/${cleanUsername}/acSubmission`).catch(() => null)
+      ]);
+      
+      if (!profileRes || !profileRes.ok) {
+        throw new Error("Could not find LeetCode profile for this rival.");
+      }
+      const profileInfo = await profileRes.json();
+      
+      let skillInfo = { fundamental: [], intermediate: [], advanced: [] };
+      if (skillRes && skillRes.ok) {
+        try {
+          skillInfo = await skillRes.json();
+        } catch (e) {
+          console.error("Error parsing rival skill JSON:", e);
+        }
+      }
+      
+      let badgesInfo = { badgesCount: 0, badges: [], upcomingBadges: [], activeBadge: null };
+      if (badgesRes && badgesRes.ok) {
+        try {
+          badgesInfo = await badgesRes.json();
+        } catch (e) {
+          console.error("Error parsing rival badges JSON:", e);
+        }
+      }
+
+      let acSubInfo = { count: 0, submission: [] };
+      if (acSubRes && acSubRes.ok) {
+        try {
+          acSubInfo = await acSubRes.json();
+        } catch (e) {
+          console.error("Error parsing rival accepted submissions JSON:", e);
+        }
+      }
+      const subList = (acSubInfo && acSubInfo.submission) ? acSubInfo.submission : [];
+
+      setRivalProfileData({
+        username: cleanUsername,
+        name: profileInfo.name || profileInfo.username || cleanUsername,
+        ranking: profileInfo.ranking || "N/A",
+        avatar: profileInfo.avatar || "https://assets.leetcode.com/users/default_avatar.jpg",
+        totalSolved: profileInfo.totalSolved || 0,
+        easySolved: profileInfo.easySolved || 0,
+        totalEasy: profileInfo.totalEasy || DEFAULT_TOTAL_EASY,
+        mediumSolved: profileInfo.mediumSolved || 0,
+        totalMedium: profileInfo.totalMedium || DEFAULT_TOTAL_MEDIUM,
+        hardSolved: profileInfo.hardSolved || 0,
+        totalHard: profileInfo.totalHard || DEFAULT_TOTAL_HARD,
+        totalQuestions: profileInfo.totalQuestions || DEFAULT_TOTAL_QUESTIONS,
+        recentSubmissions: subList.map(s => ({
+          title: s.title,
+          titleSlug: s.titleSlug,
+          status: s.statusDisplay || 'Accepted',
+          lang: s.lang || 'cpp'
+        })),
+        totalSubmissions: profileInfo.totalSubmissions || []
+      });
+
+      setRivalSkillsData(skillInfo);
+      setRivalBadgesData(badgesInfo);
+      setIsDuelActive(true);
+    } catch (err) {
+      setRivalSyncError(err.message || "Failed to sync rival. Please verify username.");
+    } finally {
+      setSyncingRival(false);
     }
   };
 
@@ -289,7 +508,6 @@ export default function App() {
     return clean;
   };
 
-  // Create a map of normalized tag slugs to problemsSolved from skillsData
   const userSkillsMap = useMemo(() => {
     const map = new Map();
     if (!skillsData) return map;
@@ -302,6 +520,19 @@ export default function App() {
     });
     return map;
   }, [skillsData]);
+
+  const rivalSkillsMap = useMemo(() => {
+    const map = new Map();
+    if (!rivalSkillsData) return map;
+    
+    const { fundamental = [], intermediate = [], advanced = [] } = rivalSkillsData;
+    [...fundamental, ...intermediate, ...advanced].forEach(item => {
+      if (item && item.tagSlug) {
+        map.set(item.tagSlug.toLowerCase().trim(), item.problemsSolved);
+      }
+    });
+    return map;
+  }, [rivalSkillsData]);
 
   // Lookup problems solved count with fallbacks and slug matching
   const getProblemsSolved = useMemo(() => {
@@ -337,6 +568,101 @@ export default function App() {
       return { userSolvedCount: 0, percent: "0" };
     };
   }, [useSyncedData, skillsData, getProblemsSolved]);
+
+  const userSolvedSet = useMemo(() => {
+    const solvedSet = new Set();
+    
+    if (profileData && profileData.recentSubmissions) {
+      profileData.recentSubmissions.forEach(sub => {
+        if (sub.status === 'Accepted' || sub.status === 'accepted') {
+          solvedSet.add(sub.titleSlug.toLowerCase().trim());
+        }
+      });
+    }
+
+    mockTagsData.forEach(tag => {
+      // 1. Handcrafted solutions
+      if (tag.mySolutions) {
+        tag.mySolutions.forEach(sol => {
+          const slug = sol.titleSlug || (sol.leetcodeUrl ? sol.leetcodeUrl.split('/problems/')[1]?.split('/')[0] : null) || (sol.title || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+          if (slug) {
+            solvedSet.add(slug.toLowerCase().trim());
+          }
+        });
+      }
+
+      // 2. Synced solved count check
+      if (useSyncedData && skillsData) {
+        const { userSolvedCount } = getTagStats(tag);
+        const handcraftedCount = tag.mySolutions ? tag.mySolutions.length : 0;
+        if (handcraftedCount < userSolvedCount) {
+          const needed = userSolvedCount - handcraftedCount;
+          const tagLower = tag.tagId.toLowerCase();
+          
+          let predefined = PREDEFINED_PROBLEMS[tagLower] || [];
+          if (tagLower === 'trees' || tagLower === 'tree') {
+            predefined = [...(PREDEFINED_PROBLEMS['trees'] || []), ...(PREDEFINED_PROBLEMS['binary-tree'] || [])];
+          } else if (tagLower === 'binary-tree') {
+            predefined = [...(PREDEFINED_PROBLEMS['binary-tree'] || []), ...(PREDEFINED_PROBLEMS['trees'] || [])];
+          } else if (tagLower === 'heap-priority-queue') {
+            predefined = PREDEFINED_PROBLEMS['heap-priority-queue'] || [];
+          }
+          
+          const existingIds = new Set(tag.mySolutions ? tag.mySolutions.map(s => s.problemId) : []);
+          let predefinedIndex = 0;
+          let added = 0;
+          
+          while (added < needed && predefinedIndex < predefined.length) {
+            const candidate = predefined[predefinedIndex++];
+            if (!existingIds.has(candidate.problemId)) {
+              if (candidate.titleSlug) {
+                solvedSet.add(candidate.titleSlug.toLowerCase().trim());
+              }
+              existingIds.add(candidate.problemId);
+              added++;
+            }
+          }
+        }
+      }
+    });
+
+    return solvedSet;
+  }, [profileData, useSyncedData, skillsData, getTagStats]);
+
+  const targetProblems = useMemo(() => {
+    if (!rivalProfileData || !rivalProfileData.recentSubmissions) return [];
+    
+    const gaps = [];
+    const seen = new Set();
+
+    rivalProfileData.recentSubmissions.forEach(sub => {
+      const isAccepted = sub.status === 'Accepted' || sub.status === 'accepted' || sub.status === 'Normal' || !sub.status;
+      if (!isAccepted) return;
+
+      const slug = sub.titleSlug.toLowerCase().trim();
+      if (!userSolvedSet.has(slug) && !seen.has(slug)) {
+        seen.add(slug);
+        
+        let resolvedTag = 'Practice';
+        for (const [tagKey, problems] of Object.entries(PREDEFINED_PROBLEMS)) {
+          if (problems.some(p => p.titleSlug === sub.titleSlug)) {
+            resolvedTag = tagKey.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            break;
+          }
+        }
+
+        gaps.push({
+          title: sub.title,
+          titleSlug: sub.titleSlug,
+          difficulty: sub.difficulty || 'Medium',
+          tag: resolvedTag,
+          leetcodeUrl: `https://leetcode.com/problems/${sub.titleSlug}/`
+        });
+      }
+    });
+
+    return gaps;
+  }, [rivalProfileData, userSolvedSet]);
 
   // Calculate global portfolio statistics
   const stats = useMemo(() => {
@@ -724,6 +1050,464 @@ export default function App() {
     }
   };
 
+  const topics = useMemo(() => [
+    { key: 'array', label: 'Array' },
+    { key: 'dynamic-programming', label: 'Dynamic Programming' },
+    { key: 'string', label: 'String' },
+    { key: 'tree', label: 'Tree' },
+    { key: 'depth-first-search', label: 'DFS' },
+    { key: 'binary-search', label: 'Binary Search' },
+    { key: 'graph', label: 'Graph' },
+    { key: 'greedy', label: 'Greedy' }
+  ], []);
+
+  const angleStep = useMemo(() => (2 * Math.PI) / topics.length, [topics]);
+  const angles = useMemo(() => topics.map((_, i) => i * angleStep - Math.PI / 2), [topics, angleStep]);
+
+  const radarData = useMemo(() => {
+    const userPoints = topics.map((topic, i) => ({
+      label: topic.label,
+      value: userSkillsMap.get(topic.key) || 0,
+      angle: angles[i]
+    }));
+
+    const rivalPoints = topics.map((topic, i) => ({
+      label: topic.label,
+      value: rivalSkillsMap.get(topic.key) || 0,
+      angle: angles[i]
+    }));
+
+    const maxValue = Math.max(
+      10,
+      ...userPoints.map(p => p.value),
+      ...rivalPoints.map(p => p.value)
+    );
+
+    const getGridCoordinates = (lvl, maxR = 95) => {
+      return angles.map(angle => {
+        const x = 150 + (lvl * maxR) * Math.cos(angle);
+        const y = 150 + (lvl * maxR) * Math.sin(angle);
+        return { x, y };
+      });
+    };
+
+    return { userPoints, rivalPoints, maxValue, getGridCoordinates };
+  }, [topics, angles, userSkillsMap, rivalSkillsMap]);
+
+  const userCoords = radarData.userPoints;
+  const rivalCoords = radarData.rivalPoints;
+  const maxValue = radarData.maxValue;
+
+  const renderDuelController = () => {
+    return (
+      <div className="glass-card rounded-2xl p-5 border border-purple-950/40 relative overflow-hidden">
+        <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 via-purple-500 to-rose-500 rounded-r"></div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+              <Users size={16} className="text-cyan-400" />
+              Rival Duel Mode (VS Mode)
+            </h3>
+            <p className="text-xs text-slate-400 font-sans">
+              Compare your progress side-by-side with any LeetCode user, analyze topic strengths, and find gap targets.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {isDuelActive ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-emerald-400 flex items-center gap-1.5 bg-emerald-950/30 border border-emerald-900/30 px-3 py-1 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Dueling with: <strong className="text-slate-100 font-bold">@{rivalProfileData?.username}</strong>
+                </span>
+                <button
+                  onClick={() => {
+                    setIsDuelActive(false);
+                    setRivalProfileData(null);
+                    setRivalSkillsData(null);
+                    setRivalBadgesData(null);
+                    localStorage.removeItem('rivalUsername');
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/25 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 text-xs font-mono font-bold transition-all cursor-pointer"
+                >
+                  Exit Duel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <input
+                  type="text"
+                  placeholder="Rival LeetCode Username..."
+                  value={rivalInputName}
+                  onChange={(e) => setRivalInputName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSyncRival(rivalInputName)}
+                  className="px-3 py-1.5 text-xs font-mono rounded-xl bg-purple-950/20 border border-purple-900/30 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/40 w-full sm:w-56"
+                />
+                <button
+                  onClick={() => handleSyncRival(rivalInputName)}
+                  disabled={syncingRival || !rivalInputName.trim()}
+                  className="px-4 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/25 text-cyan-400 text-xs font-mono font-bold uppercase transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {syncingRival ? '⏳ Syncing...' : 'Duel'}
+                </button>
+                <button
+                  onClick={() => handleSyncRival('rival_demo')}
+                  disabled={syncingRival}
+                  className="px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/25 text-purple-400 text-xs font-mono font-bold uppercase transition-all cursor-pointer"
+                  title="Load preloaded demo competitor to preview comparison dashboard immediately"
+                >
+                  Demo
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        {rivalSyncError && (
+          <div className="mt-3 text-xs text-rose-400 font-mono flex items-center gap-1.5">
+            <AlertTriangle size={12} />
+            {rivalSyncError}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderDuelDashboard = () => {
+    if (!rivalProfileData) return null;
+
+    return (
+      <div className="space-y-6">
+        {/* Header VS Card */}
+        <div className="glass-card rounded-2xl p-6 border border-purple-950/30 relative flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+          {/* User profile side */}
+          <div className="flex items-center gap-4 text-left w-full md:w-2/5 justify-end">
+            <div className="text-right">
+              <span className="text-[10px] text-purple-400 font-mono uppercase tracking-wider block">Primary User</span>
+              <span className="text-lg font-bold text-slate-100 block">{profileData ? profileData.name : 'Aaryan'}</span>
+              <span className="text-xs text-slate-400 font-mono">@{profileData?.username || '68yxxnyWG8'}</span>
+            </div>
+            <img 
+              src={profileData?.avatar || "https://assets.leetcode.com/users/default_avatar.jpg"} 
+              alt="User Avatar" 
+              className="w-14 h-14 rounded-xl border border-purple-500/30 object-cover" 
+            />
+          </div>
+
+          {/* VS Divider Badge */}
+          <div className="flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-rose-500 flex items-center justify-center shadow-lg shadow-purple-950/40 relative border border-purple-900/35">
+              <span className="text-sm font-black font-mono tracking-widest text-slate-900 animate-pulse">VS</span>
+            </div>
+          </div>
+
+          {/* Rival profile side */}
+          <div className="flex items-center gap-4 text-left w-full md:w-2/5 justify-start">
+            <img 
+              src={rivalProfileData.avatar} 
+              alt="Rival Avatar" 
+              className="w-14 h-14 rounded-xl border border-cyan-500/30 object-cover" 
+            />
+            <div>
+              <span className="text-[10px] text-cyan-400 font-mono uppercase tracking-wider block">Rival Challenger</span>
+              <span className="text-lg font-bold text-slate-100 block">{rivalProfileData.name}</span>
+              <span className="text-xs text-slate-400 font-mono">@{rivalProfileData.username}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Comparison scorecard & Radar chart grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Side-by-Side Solved Scorecard */}
+          <div className="glass-card rounded-2xl p-6 space-y-6 col-span-1 lg:col-span-2">
+            <h3 className="text-sm font-bold text-purple-300 uppercase tracking-wider font-mono flex items-center gap-2 border-b border-purple-950/30 pb-2.5">
+              <Activity size={16} className="text-purple-400" />
+              Comparative Solved Stats
+            </h3>
+            
+            <div className="space-y-5">
+              {/* Easy Comparative Progress */}
+              <div className="space-y-2 font-mono">
+                <div className="flex justify-between text-xs">
+                  <span className="text-cyan-400 font-semibold uppercase">Easy</span>
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <span>You: <strong>{profileData?.easySolved || 0}</strong></span>
+                    <span className="text-slate-600">vs</span>
+                    <span className="text-cyan-300">Rival: <strong>{rivalProfileData.easySolved}</strong></span>
+                  </div>
+                </div>
+                {/* Visual progress bar comparison */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500">YOU</span>
+                    <div className="w-full h-1.5 bg-purple-950/40 rounded-full overflow-hidden border border-purple-900/10">
+                      <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${((profileData?.easySolved || 0) / (profileData?.totalEasy || 1)) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500 text-right block">RIVAL</span>
+                    <div className="w-full h-1.5 bg-purple-950/40 rounded-full overflow-hidden border border-purple-900/10">
+                      <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${(rivalProfileData.easySolved / rivalProfileData.totalEasy) * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medium Comparative Progress */}
+              <div className="space-y-2 font-mono">
+                <div className="flex justify-between text-xs">
+                  <span className="text-amber-400 font-semibold uppercase">Medium</span>
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <span>You: <strong>{profileData?.mediumSolved || 0}</strong></span>
+                    <span className="text-slate-600">vs</span>
+                    <span className="text-amber-300">Rival: <strong>{rivalProfileData.mediumSolved}</strong></span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500">YOU</span>
+                    <div className="w-full h-1.5 bg-purple-950/40 rounded-full overflow-hidden border border-purple-900/10">
+                      <div className="h-full bg-amber-400 rounded-full" style={{ width: `${((profileData?.mediumSolved || 0) / (profileData?.totalMedium || 1)) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500 text-right block">RIVAL</span>
+                    <div className="w-full h-1.5 bg-purple-950/40 rounded-full overflow-hidden border border-purple-900/10">
+                      <div className="h-full bg-amber-400 rounded-full" style={{ width: `${(rivalProfileData.mediumSolved / rivalProfileData.totalMedium) * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hard Comparative Progress */}
+              <div className="space-y-2 font-mono">
+                <div className="flex justify-between text-xs">
+                  <span className="text-rose-400 font-semibold uppercase">Hard</span>
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <span>You: <strong>{profileData?.hardSolved || 0}</strong></span>
+                    <span className="text-slate-600">vs</span>
+                    <span className="text-rose-300">Rival: <strong>{rivalProfileData.hardSolved}</strong></span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500">YOU</span>
+                    <div className="w-full h-1.5 bg-purple-950/40 rounded-full overflow-hidden border border-purple-900/10">
+                      <div className="h-full bg-rose-400 rounded-full" style={{ width: `${((profileData?.hardSolved || 0) / (profileData?.totalHard || 1)) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500 text-right block">RIVAL</span>
+                    <div className="w-full h-1.5 bg-purple-950/40 rounded-full overflow-hidden border border-purple-900/10">
+                      <div className="h-full bg-rose-400 rounded-full" style={{ width: `${(rivalProfileData.hardSolved / rivalProfileData.totalHard) * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rank / Badges scoreboard cards */}
+              <div className="grid grid-cols-2 gap-4 pt-3.5 border-t border-purple-950/20 font-mono">
+                {/* Ranking Box */}
+                <div className="bg-purple-950/10 border border-purple-900/10 p-3 rounded-xl">
+                  <span className="text-[10px] text-slate-500 uppercase block tracking-wider leading-none">Global Ranking</span>
+                  <div className="flex items-baseline justify-between mt-2.5">
+                    <div className="text-slate-200 text-[11px]">
+                      You: <span className="text-slate-100 font-bold">#{profileData?.ranking || 'N/A'}</span>
+                    </div>
+                    <div className="text-cyan-400 text-[11px]">
+                      Rival: <span className="text-cyan-300 font-bold">#{rivalProfileData.ranking}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total Solved Box */}
+                <div className="bg-purple-950/10 border border-purple-900/10 p-3 rounded-xl">
+                  <span className="text-[10px] text-slate-500 uppercase block tracking-wider leading-none">Total Solved</span>
+                  <div className="flex items-baseline justify-between mt-2.5">
+                    <div className="text-slate-200 text-[11px]">
+                      You: <span className="text-slate-100 font-bold">{profileData?.totalSolved || 0}</span>
+                    </div>
+                    <div className="text-cyan-400 text-[11px]">
+                      Rival: <span className="text-cyan-300 font-bold">{rivalProfileData.totalSolved}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: SVG Radar Chart (Mastery Comparison) */}
+          <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-between col-span-1">
+            <div className="w-full">
+              <h3 className="text-sm font-bold text-purple-300 uppercase tracking-wider font-mono flex items-center gap-2 border-b border-purple-950/30 pb-2.5">
+                <Sliders size={16} className="text-purple-400" />
+                Mastery Comparison
+              </h3>
+            </div>
+            
+            {/* Custom SVG Radar Chart */}
+            <div className="w-full max-w-[280px] h-[280px] flex items-center justify-center mt-4 relative">
+              <svg className="w-full h-full overflow-visible" viewBox="0 0 300 300">
+                {/* Grid level circles/polygons */}
+                {[0.25, 0.5, 0.75, 1.0].map((lvl, idx) => {
+                  const points = angles.map(angle => {
+                    const x = 150 + (lvl * 95) * Math.cos(angle);
+                    const y = 150 + (lvl * 95) * Math.sin(angle);
+                    return `${x},${y}`;
+                  }).join(' ');
+                  return (
+                    <polygon 
+                      key={idx} 
+                      points={points} 
+                      fill="none" 
+                      stroke="rgba(147, 51, 234, 0.12)" 
+                      strokeWidth="1" 
+                    />
+                  );
+                })}
+                
+                {/* Spokes */}
+                {angles.map((angle, idx) => {
+                  const x = 150 + 95 * Math.cos(angle);
+                  const y = 150 + 95 * Math.sin(angle);
+                  return (
+                    <line
+                      key={idx}
+                      x1="150"
+                      y1="150"
+                      x2={x}
+                      y2={y}
+                      stroke="rgba(147, 51, 234, 0.12)"
+                      strokeWidth="1"
+                    />
+                  );
+                })}
+
+                {/* User polygon (solid purple) */}
+                <polygon 
+                  points={userCoords.map((c, i) => {
+                    const r = ((userSkillsMap.get(topics[i].key) || 0) / maxValue) * 95;
+                    const x = 150 + r * Math.cos(c.angle);
+                    const y = 150 + r * Math.sin(c.angle);
+                    return `${x},${y}`;
+                  }).join(' ')} 
+                  fill="rgba(168, 85, 247, 0.2)" 
+                  stroke="rgb(168, 85, 247)" 
+                  strokeWidth="2" 
+                />
+
+                {/* Rival polygon (dashed cyan) */}
+                <polygon 
+                  points={rivalCoords.map((c, i) => {
+                    const r = ((rivalSkillsMap.get(topics[i].key) || 0) / maxValue) * 95;
+                    const x = 150 + r * Math.cos(c.angle);
+                    const y = 150 + r * Math.sin(c.angle);
+                    return `${x},${y}`;
+                  }).join(' ')} 
+                  fill="rgba(14, 165, 233, 0.18)" 
+                  stroke="rgb(14, 165, 233)" 
+                  strokeWidth="2" 
+                  strokeDasharray="4,3" 
+                />
+
+                {/* Outer Labels */}
+                {topics.map((topic, idx) => {
+                  const angle = angles[idx];
+                  const x = 150 + 115 * Math.cos(angle);
+                  const y = 150 + 115 * Math.sin(angle);
+                  
+                  let textAnchor = "middle";
+                  if (Math.cos(angle) > 0.1) textAnchor = "start";
+                  else if (Math.cos(angle) < -0.1) textAnchor = "end";
+                  
+                  return (
+                    <text
+                      key={idx}
+                      x={x}
+                      y={y}
+                      textAnchor={textAnchor}
+                      dominantBaseline="central"
+                      className="fill-slate-400 text-[9px] font-mono select-none"
+                    >
+                      {topic.label}
+                    </text>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {/* Custom Legend */}
+            <div className="flex items-center gap-5 mt-4 text-[10px] font-mono">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-1 bg-purple-500 rounded"></span>
+                <span className="text-slate-300">You ({profileData?.totalSolved || 0})</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-1 border-t-2 border-dashed border-cyan-400"></span>
+                <span className="text-slate-300">Rival ({rivalProfileData.totalSolved})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Overlap Gaps / Target Problems section */}
+        <div className="glass-card rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-purple-950/30 pb-3">
+            <h3 className="text-sm font-bold text-rose-300 uppercase tracking-wider font-mono flex items-center gap-2">
+              <Zap size={16} className="text-rose-400 font-bold" />
+              Target Problems (Rival Solved, You Haven't)
+            </h3>
+            <span className="text-[10px] text-slate-500 font-mono">
+              {targetProblems.length} targets identified
+            </span>
+          </div>
+
+          {targetProblems.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 font-mono">
+              {targetProblems.map((problem, pIdx) => (
+                <a
+                  key={pIdx}
+                  href={problem.leetcodeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 rounded-xl border border-purple-950/30 bg-[#0d0918]/40 hover:bg-[#120c24]/50 hover:border-purple-500/25 transition-all duration-300 hover:scale-[1.01] hover:shadow-md hover:shadow-purple-950/15 group"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      problem.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      problem.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                      'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    }`}>
+                      {problem.difficulty}
+                    </span>
+                    <span className="text-[9px] text-slate-500 group-hover:text-purple-400 transition-colors uppercase tracking-wider">
+                      {problem.tag}
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-200 mt-2.5 group-hover:text-white transition-colors leading-snug line-clamp-1 pr-4">
+                    {problem.title}
+                  </h4>
+                  <div className="flex items-center gap-1 text-[9px] text-slate-500 group-hover:text-cyan-400 transition-colors mt-2">
+                    <span>Solve on LeetCode</span>
+                    <ExternalLink size={10} />
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-[#07040e]/30 border border-purple-950/15 rounded-xl">
+              <p className="text-xs text-slate-500 font-mono italic">
+                No gap targets identified from rival's recent submissions.
+              </p>
+              <p className="text-[10px] text-slate-600 font-sans mt-1">
+                Either you have solved them all, or the rival does not have recent accepted submissions.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0713] text-slate-100 selection:bg-purple-500/30 selection:text-purple-200">
       
@@ -1109,6 +1893,11 @@ export default function App() {
             {/* Tab 0: Profile Dashboard */}
             {activeTab === 'profile' && (
               <div className="space-y-6 animate-fade-in text-slate-100">
+                {renderDuelController()}
+                {isDuelActive && rivalProfileData ? (
+                  renderDuelDashboard()
+                ) : (
+                  <>
                 
                 {/* Grid of Profile Stats & Badges */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1501,7 +2290,8 @@ export default function App() {
                     </p>
                   )}
                 </div>
-
+                  </>
+                )}
               </div>
             )}
             

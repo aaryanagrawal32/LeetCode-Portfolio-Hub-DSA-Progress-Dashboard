@@ -6,6 +6,11 @@ An interactive, premium-designed React & Vite dashboard for visualizing LeetCode
 
 ## 🌟 Key Features
 
+- **⚔️ Rival Duel Mode (VS Mode)**: Side-by-side progression benchmarking panel:
+  - **Dynamic Competitor Syncing**: Executes parallel API fetches to retrieve live competitor stats (Easy/Medium/Hard breakdown, global ranking, and recent accepted submissions).
+  - **SVG Radar Chart**: Visualizes and overlays topic mastery comparison across 8 top categories (Array, Dynamic Programming, String, Tree, DFS, Binary Search, Graph, Greedy).
+  - **Target Problems Checklist**: Filters rival's accepted submissions against your own solved list to identify target practice gaps with direct LeetCode links.
+  - **Simulated Preview**: Enter `demo` or `rival_demo` to instantly showcase the dashboard comparison using preloaded dummy data.
 - **📊 Solved Problems Feed**: Expandable solved problems table with difficulty indicators, links to problem statements, complexity charts, and inline IDE sub-tabs.
 - **🧭 Inline IDE Sub-tabs**:
   - **Problem Description**: Dynamically fetched and rendered rich text problem statements.
@@ -39,7 +44,7 @@ Make sure you have [Node.js](https://nodejs.org/) installed (version 18+ is reco
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/aaryanagrawal32/LeetCode-Portfolio-Hub-DSA-Progress-Dashboard.git
-   cd Leetcode-summary
+   cd LeetCode-Portfolio-Hub-DSA-Progress-Dashboard
    ```
 
 2. **Install Dependencies**:
@@ -64,7 +69,7 @@ Make sure you have [Node.js](https://nodejs.org/) installed (version 18+ is reco
 ## 📁 Project Structure
 
 ```
-Leetcode-summary/
+LeetCode-Portfolio-Hub-DSA-Progress-Dashboard/
 ├── public/                 # Static assets
 ├── src/
 │   ├── components/         # Reusable React components (ComplexityGauge, CodeBlock, etc.)
