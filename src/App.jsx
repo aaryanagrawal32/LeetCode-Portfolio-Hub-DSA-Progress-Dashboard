@@ -39,6 +39,7 @@ import { generatePlaygroundCode } from './utils/playgroundHelpers';
 import { getDryRunTrace } from './utils/dryRunTraces';
 import ComplexityGauge from './components/ComplexityGauge';
 import { FALLBACK_TEMPLATES } from './data/fallbackTemplates';
+import { Analytics } from '@vercel/analytics/react';
 
 // Constants for total question counts on LeetCode
 const DEFAULT_TOTAL_EASY = 950;
@@ -3009,6 +3010,9 @@ export default function App() {
       <footer className="border-t border-purple-950/40 py-4.5 text-center text-xs text-slate-500 font-mono bg-[#090510]">
         LeetCode Portfolio Hub © 2026. All Rights Reserved.
       </footer>
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
