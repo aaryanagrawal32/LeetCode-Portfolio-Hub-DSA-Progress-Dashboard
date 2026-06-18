@@ -249,3 +249,526 @@ select option {
 .keyword-pill:hover {
   box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
 }
+
+/* ========================================================
+   PREMIUM LIGHT MODE STYLING & VARIABLE OVERRIDES
+   ======================================================== */
+
+.light {
+  /* Override core theme variables with rich warm lavender tones */
+  --color-dark-bg: #eae3f5;
+  --color-dark-card: #ffffff;
+  --color-dark-border: rgba(124, 58, 237, 0.15);
+  --color-dark-border-hover: rgba(124, 58, 237, 0.35);
+}
+
+.light body {
+  background-color: #eae3f5;
+  color: #3b2e4c;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.16) 0px, transparent 60%),
+    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.1) 0px, transparent 60%),
+    radial-gradient(at 50% 50%, rgba(168, 85, 247, 0.06) 0px, transparent 75%);
+}
+
+/* Scrollbars in light mode */
+.light ::-webkit-scrollbar-track {
+  background: rgba(234, 227, 245, 0.5);
+}
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.25);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.45);
+}
+
+/* Header Separator & Highlight Design Fix */
+.light header {
+  background-color: #ffffff !important;
+  border-bottom: 2px solid rgba(124, 58, 237, 0.2) !important;
+  box-shadow: 0 4px 24px -2px rgba(124, 58, 237, 0.1) !important;
+}
+
+/* Sidebar Define & Border Fix */
+.light aside {
+  background-color: #ffffff !important;
+  border-right: 1.5px solid rgba(124, 58, 237, 0.18) !important;
+  box-shadow: 4px 0 24px -4px rgba(124, 58, 237, 0.06) !important;
+}
+
+.light .sidebar-scrollbar::-webkit-scrollbar-track {
+  background: rgba(234, 227, 245, 0.3);
+}
+
+/* Sidebar active indicators and general navigation buttons */
+.light .bg-\[\#120c24\]\/50,
+.light .bg-\[\#120c24\]\/40 {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(124, 58, 237, 0.1) !important;
+  color: #4c455e !important;
+}
+
+.light .bg-\[\#120c24\]\/50:hover,
+.light .bg-\[\#120c24\]\/40:hover {
+  background-color: rgba(124, 58, 237, 0.05) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+  color: #1f192f !important;
+}
+
+/* Sidebar Active states override */
+.light .bg-purple-900\/15,
+.light .bg-purple-900\/20 {
+  background-color: rgba(124, 58, 237, 0.15) !important;
+  border-color: rgba(124, 58, 237, 0.35) !important;
+  color: #7c3aed !important;
+}
+
+/* Sidebar Active title text */
+.light .bg-purple-900\/15 .text-purple-300,
+.light .bg-purple-900\/20 .text-purple-300,
+.light .text-purple-300 {
+  color: #7c3aed !important;
+}
+
+/* Target hardcoded dark backgrounds inside Light Mode */
+.light .bg-\[\#0b0713\],
+.light .bg-\[\#0c0818\]\/95 {
+  background-color: #eae3f5 !important;
+}
+
+.light .bg-\[\#0e0a1b\]\/80 {
+  background-color: #ffffff !important;
+  border-bottom-color: rgba(124, 58, 237, 0.2) !important;
+}
+
+.light .bg-\[\#0c0818\]\/65 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.light .bg-\[\#08050e\],
+.light .bg-\[\#090510\],
+.light footer {
+  background-color: #dfd8ed !important; /* soft border area */
+  border-color: rgba(124, 58, 237, 0.18) !important;
+}
+
+/* User Skills & Live Recent Submissions card boxes */
+.light .bg-\[\#0b0713\]\/40 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+.light .bg-purple-950\/5,
+.light .bg-purple-950\/10,
+.light .bg-purple-950\/20,
+.light .bg-purple-950\/30,
+.light .bg-purple-950\/35,
+.light .bg-purple-950\/45,
+.light .bg-\[\#0f0a1d\],
+.light .bg-\[\#0f0a1d\]\/40,
+.light .bg-\[\#0f0a1d\]\/60,
+.light .bg-\[\#0f0a1d\]\/75,
+.light .bg-\[\#0d0918\]\/60,
+.light .bg-\[\#0c0818\]\/80,
+.light .bg-slate-950\/30,
+.light .bg-slate-950\/50,
+.light .bg-slate-950\/60 {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+.light .border-purple-950\/30,
+.light .border-purple-950\/40,
+.light .border-purple-900\/10,
+.light .border-purple-900\/20,
+.light .border-purple-900\/30,
+.light .border-purple-900\/40,
+.light .border-purple-900\/50,
+.light .border-white\/5 {
+  border-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+/* Inputs & Dropdowns styling */
+.light select,
+.light input {
+  background-color: #ffffff !important;
+  border-color: rgba(124, 58, 237, 0.25) !important;
+  color: #3b2e4c !important;
+}
+.light select option {
+  background-color: #ffffff !important;
+  color: #3b2e4c !important;
+}
+
+/* High contrast slate text for Light Mode */
+.light .text-slate-100,
+.light .text-slate-200,
+.light .text-slate-300,
+.light .text-white,
+.light h1, .light h2, .light h3, .light h4 {
+  color: #1f1430 !important;
+}
+
+.light .text-slate-400 {
+  color: #5c5070 !important;
+}
+
+.light .text-slate-500 {
+  color: #786d90 !important;
+}
+
+/* Tab buttons active highlight identification overrides */
+.light button.text-purple-400 {
+  color: #7c3aed !important;
+  font-weight: 700 !important;
+}
+.light button.text-slate-400 {
+  color: #635b75 !important;
+}
+.light button.text-slate-400:hover {
+  color: #7c3aed !important;
+}
+.light .border-purple-955\/30,
+.light .border-purple-950\/30 {
+  border-color: rgba(124, 58, 237, 0.2) !important;
+}
+
+/* Inactive tabs hover styles */
+.light .hover\:text-slate-200:hover,
+.light .text-slate-400:hover {
+  color: #7c3aed !important;
+}
+
+/* Dynamic accent coloring tweaks to fit light background */
+.light .text-purple-400 { color: #7c3aed !important; }
+.light .text-cyan-400 { color: #0284c7 !important; }
+.light .text-cyan-300 { color: #0369a1 !important; }
+.light .text-amber-400 { color: #d97706 !important; }
+.light .text-emerald-400 { color: #059669 !important; }
+.light .text-rose-400 { color: #e11d48 !important; }
+
+/* Problem description styles */
+.light .leetcode-description-html code {
+  background-color: rgba(124, 58, 237, 0.06);
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.15);
+}
+.light .leetcode-description-html pre {
+  background-color: #f3f1f7;
+  border-color: rgba(124, 58, 237, 0.15);
+  color: #1f1430;
+}
+
+.light .keyword-pill {
+  background-color: rgba(2, 132, 199, 0.08) !important;
+  border-color: rgba(2, 132, 199, 0.2) !important;
+  color: #0284c7 !important;
+}
+.light .keyword-pill:hover {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.15);
+}
+
+/* Heatmap Container & Labels overrides */
+.light .bg-\[\#07040e\]\/40 {
+  background-color: #ffffff !important;
+  border: 1.5px solid rgba(124, 58, 237, 0.2) !important;
+  border-left: 5px solid #7c3aed !important;
+  box-shadow: 0 10px 30px -4px rgba(124, 58, 237, 0.12) !important;
+}
+
+.light .bg-\[\#07040e\]\/40 .text-slate-500 {
+  color: #4b3e64 !important;
+  font-weight: 600 !important;
+}
+
+.light .bg-\[\#07040e\]\/40 .border-purple-950\/20 {
+  border-color: rgba(124, 58, 237, 0.2) !important;
+}
+
+/* Calendar contribution cells override */
+.light .bg-\[\#140f26\] {
+  background-color: #dfd7e8 !important;
+  border-color: #ffffff !important;
+}
+
+.light .bg-emerald-955\/10,
+.light .bg-emerald-950\/60 {
+  background-color: #a7f3d0 !important;
+  border-color: #ffffff !important;
+}
+
+.light .bg-emerald-800\/60 {
+  background-color: #6ee7b7 !important;
+  border-color: #ffffff !important;
+}
+
+.light .bg-emerald-600\/70 {
+  background-color: #34d399 !important;
+  border-color: #ffffff !important;
+}
+
+.light .bg-emerald-400 {
+  background-color: #059669 !important;
+  border-color: #ffffff !important;
+}
+
+.light .bg-rose-955\/10,
+.light .bg-rose-950\/15 {
+  background-color: rgba(225, 29, 72, 0.06) !important;
+  border-color: rgba(225, 29, 72, 0.12) !important;
+}
+
+.light .bg-amber-950\/10 {
+  background-color: rgba(217, 71, 6, 0.06) !important;
+  border-color: rgba(217, 71, 6, 0.12) !important;
+}
+
+.light .bg-cyan-955\/40 {
+  background-color: rgba(6, 182, 212, 0.12) !important;
+  border-color: rgba(6, 182, 212, 0.35) !important;
+  color: #0369a1 !important;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.06) !important;
+}
+
+.light .bg-cyan-955\/40:hover {
+  background-color: rgba(6, 182, 212, 0.2) !important;
+  border-color: #0891b2 !important;
+}
+
+.light .bg-cyan-950\/10,
+.light .bg-cyan-950\/20 {
+  background-color: rgba(2, 132, 199, 0.06) !important;
+  border-color: rgba(2, 132, 199, 0.12) !important;
+}
+
+/* Solved circle track override */
+.light circle[stroke="#18132b"] {
+  stroke: #e2e0ed !important;
+}
+
+/* Complexity gauges track override */
+.light circle.stroke-slate-800\/60 {
+  stroke: #e2e0ed !important;
+}
+
+/* Active template tab & Sub-tabs override */
+.light .border-purple-500.text-white.bg-purple-950\/20 {
+  background-color: rgba(124, 58, 237, 0.08) !important;
+  color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Difficulty filter pills (Active overrides) */
+.light .bg-purple-500\/20.border-purple-500\/50.text-purple-300 {
+  background-color: rgba(124, 58, 237, 0.12) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+  color: #7c3aed !important;
+}
+.light .bg-emerald-500\/20.border-emerald-500\/50.text-emerald-300 {
+  background-color: #d1fae5 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #047857 !important;
+}
+.light .bg-amber-500\/20.border-amber-500\/50.text-amber-300 {
+  background-color: #fef3c7 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #b45309 !important;
+}
+.light .bg-rose-500\/20.border-rose-500\/50.text-rose-300 {
+  background-color: #ffe4e6 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #be123c !important;
+}
+
+/* Difficulty filter pills (Inactive overrides) */
+.light .border-slate-700\/50.text-slate-400 {
+  border-color: rgba(124, 58, 237, 0.15) !important;
+  color: #5c5070 !important;
+}
+
+/* User Skills Dashboard Overrides */
+.light .bg-purple-900\/10 {
+  background-color: rgba(124, 58, 237, 0.06) !important;
+  border-color: rgba(124, 58, 237, 0.15) !important;
+  color: #7c3aed !important;
+}
+.light .bg-purple-900\/10:hover {
+  background-color: rgba(124, 58, 237, 0.12) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+}
+.light .bg-cyan-950\/10 {
+  background-color: rgba(6, 182, 212, 0.05) !important;
+  border-color: rgba(6, 182, 212, 0.15) !important;
+  color: #0284c7 !important;
+}
+.light .bg-cyan-950\/10:hover {
+  background-color: rgba(6, 182, 212, 0.1) !important;
+  border-color: rgba(6, 182, 212, 0.3) !important;
+}
+.light .bg-emerald-950\/10 {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.15) !important;
+  color: #059669 !important;
+}
+.light .bg-emerald-950\/10:hover {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+/* User Skills Inner Badge Problems Count Contrast Fix */
+.light .bg-purple-950\/80 {
+  background-color: #7c3aed !important;
+  border-color: rgba(124, 58, 237, 0.2) !important;
+}
+.light .bg-purple-950\/80,
+.light .bg-purple-950\/80 * {
+  color: #ffffff !important;
+}
+
+.light .bg-cyan-955\/80,
+.light .bg-cyan-950\/80 {
+  background-color: #0284c7 !important;
+  border-color: rgba(6, 182, 212, 0.2) !important;
+}
+.light .bg-cyan-955\/80,
+.light .bg-cyan-955\/80 *,
+.light .bg-cyan-950\/80,
+.light .bg-cyan-950\/80 * {
+  color: #ffffff !important;
+}
+
+.light .bg-emerald-950\/80 {
+  background-color: #059669 !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+.light .bg-emerald-950\/80,
+.light .bg-emerald-950\/80 * {
+  color: #ffffff !important;
+}
+
+/* Dry run simulation box styling overrides */
+.light .dry-run-console,
+.light .bg-\[\#0c0818\].border-cyan-900\/30 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+.light .dry-run-console .text-cyan-400,
+.light .bg-\[\#0c0818\].border-cyan-900\/30 .text-cyan-400 {
+  color: #0284c7 !important;
+}
+.light .dry-run-console .text-slate-300,
+.light .bg-\[\#0c0818\].border-cyan-900\/30 .text-slate-300 {
+  color: #0369a1 !important;
+}
+.light .dry-run-console .text-purple-500,
+.light .bg-\[\#0c0818\].border-cyan-900\/30 .text-purple-500 {
+  color: #7c3aed !important;
+}
+.light .dry-run-console .absolute.top-2.right-2 {
+  color: #64748b !important;
+}
+.light .dry-run-console .absolute.top-2.right-2:hover {
+  color: #0f172a !important;
+  background-color: #e2e8f0 !important;
+}
+
+/* C++ Code Block custom styling overrides */
+.light .bg-\[\#0c0818\]\/95 {
+  background-color: #fdfdfd !important;
+  border-color: rgba(124, 58, 237, 0.15) !important;
+  box-shadow: inset 0 2px 8px rgba(124, 58, 237, 0.03) !important;
+}
+
+.light .bg-\[\#140e26\] {
+  background-color: #eae5f5 !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.15) !important;
+  color: #1f1430 !important;
+}
+
+.light .border-purple-950\/30 {
+  border-color: rgba(124, 58, 237, 0.12) !important;
+}
+
+.light .text-purple-900\/50 {
+  color: rgba(124, 58, 237, 0.4) !important;
+}
+
+.light .text-slate-300 {
+  color: #2e283c !important;
+}
+
+/* CodeBlock syntax highlighting overrides in Light Mode */
+.light pre.text-slate-300 span.text-\[\#c084fc\] {
+  color: #9333ea !important; /* purple keyword */
+  font-weight: 600 !important;
+}
+
+.light pre.text-slate-300 span.text-\[\#22d3ee\] {
+  color: #0284c7 !important; /* cyan std types -> deep blue/cyan */
+}
+
+.light pre.text-slate-300 span.text-\[\#fcd34d\] {
+  color: #d97706 !important; /* yellow methods -> dark amber */
+}
+
+.light pre.text-slate-300 span.text-\[\#34d399\] {
+  color: #059669 !important; /* green numbers -> rich green */
+}
+
+.light pre.text-slate-300 span.text-slate-500 {
+  color: #7c7790 !important; /* comments -> light slate-purple */
+  font-style: italic !important;
+}
+
+/* Sidebar Topic Tag Progress Bar Overrides */
+.light .bg-purple-955\/50,
+.light .bg-purple-950\/50 {
+  background-color: #dfd7e8 !important; /* light track background */
+}
+
+/* Inactive tag progress bar fill */
+.light .bg-purple-950\/50 > div {
+  background-image: linear-gradient(to right, #c084fc, #a855f7) !important;
+}
+
+/* Active tag progress bar fill */
+.light .border-purple-500 .bg-purple-950\/50 > div {
+  background-image: linear-gradient(to right, #06b6d4, #7c3aed) !important;
+}
+
+/* Complexity Gauge Card Highlight */
+.light .border-white\/5 {
+  background-color: #ffffff !important;
+  border: 1.5px solid rgba(124, 58, 237, 0.22) !important;
+  box-shadow: 0 4px 20px -2px rgba(124, 58, 237, 0.06) !important;
+}
+
+.light .border-white\/5:hover {
+  border-color: #7c3aed !important;
+  box-shadow: 0 10px 25px -4px rgba(124, 58, 237, 0.12) !important;
+}
+
+/* Complexity Gauge Bottom Description Text Contrast Fix */
+.light .text-slate-300\/80 {
+  color: rgba(59, 46, 76, 0.85) !important;
+  font-weight: 500 !important;
+}
+
+/* Identification Rules List Box Highlight */
+.light .bg-purple-950\/10.border-l-2.border-purple-500\/50 {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(124, 58, 237, 0.16) !important;
+  border-left: 4.5px solid #7c3aed !important;
+  box-shadow: 0 4px 12px -2px rgba(124, 58, 237, 0.04) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.light .bg-purple-950\/10.border-l-2.border-purple-500\/50:hover {
+  background-color: rgba(124, 58, 237, 0.03) !important;
+  border-color: rgba(124, 58, 237, 0.3) !important;
+  border-left-color: #7c3aed !important;
+  box-shadow: 0 6px 16px -2px rgba(124, 58, 237, 0.08) !important;
+  transform: translateX(3px);
+}

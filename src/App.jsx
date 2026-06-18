@@ -30,6 +30,14 @@ import {
 import { mockTagsData } from './mockData';
 import CodeBlock from './components/CodeBlock';
 import { STL_CONTAINER_DIRECTORY } from './data/stlDirectory';
+import { PREDEFINED_PROBLEMS } from './data/predefinedProblems';
+import { STL_CHEAT_SHEETS } from './data/stlCheatSheets';
+import { EDGE_CASES } from './data/edgeCases';
+import { TAG_KEYWORDS } from './data/tagKeywords';
+import { generatePlaygroundCode } from './utils/playgroundHelpers';
+import { getDryRunTrace } from './utils/dryRunTraces';
+import ComplexityGauge from './components/ComplexityGauge';
+import { FALLBACK_TEMPLATES } from './data/fallbackTemplates';
 
 // Constants for total question counts on LeetCode
 const DEFAULT_TOTAL_EASY = 950;
@@ -37,526 +45,10 @@ const DEFAULT_TOTAL_MEDIUM = 2069;
 const DEFAULT_TOTAL_HARD = 943;
 const DEFAULT_TOTAL_QUESTIONS = 3962;
 
-// Static list of classic LeetCode questions by tag to populate lists dynamically
-const PREDEFINED_PROBLEMS = {
-  "array": [
-    {
-      problemId: 26,
-      title: "Remove Duplicates from Sorted Array",
-      titleSlug: "remove-duplicates-from-sorted-array",
-      difficulty: "Easy",
-      logic: "Use a slow pointer that only moves forward when a unique element is found, updating the array in-place. This achieves O(N) time and O(1) space complexity.",
-      code: `int removeDuplicates(vector<int>& nums) {
-    if (nums.empty()) return 0;
-    int k = 1;
-    for (int i = 1; i < nums.size(); i++) {
-        if (nums[i] != nums[i - 1]) {
-            nums[k] = nums[i];
-            k++;
-        }
-    }
-    return k;
-}`
-    },
-    {
-      problemId: 53,
-      title: "Maximum Subarray",
-      titleSlug: "maximum-subarray",
-      difficulty: "Medium",
-      logic: "Kadane's Algorithm: Maintain the maximum subarray sum ending at each position. If the running sum becomes negative, discard it and start fresh from the current element.",
-      code: `int maxSubArray(vector<int>& nums) {
-    int maxSum = nums[0];
-    int currentSum = nums[0];
-    for (int i = 1; i < nums.size(); i++) {
-        currentSum = max(nums[i], currentSum + nums[i]);
-        maxSum = max(maxSum, currentSum);
-    }
-    return maxSum;
-}`
-    },
-    {
-      problemId: 189,
-      title: "Rotate Array",
-      titleSlug: "rotate-array",
-      difficulty: "Medium",
-      logic: "Reverse three times: first reverse the entire array, then reverse the first k elements, and finally reverse the remaining elements. This achieves O(N) time and O(1) auxiliary space.",
-      code: `void rotate(vector<int>& nums, int k) {
-    int n = nums.size();
-    k = k % n;
-    reverse(nums.begin(), nums.end());
-    reverse(nums.begin(), nums.begin() + k);
-    reverse(nums.begin() + k, nums.end());
-}`
-    },
-    {
-      problemId: 56,
-      title: "Merge Intervals",
-      titleSlug: "merge-intervals",
-      difficulty: "Medium",
-      logic: "Sort the intervals by their start times. Iterate through them, merging overlapping intervals into the last interval added to the result.",
-      code: `vector<vector<int>> merge(vector<vector<int>>& intervals) {
-    if (intervals.empty()) return {};
-    sort(intervals.begin(), intervals.end());
-    vector<vector<int>> merged;
-    merged.push_back(intervals[0]);
-    for (int i = 1; i < intervals.size(); i++) {
-        if (intervals[i][0] <= merged.back()[1]) {
-            merged.back()[1] = max(merged.back()[1], intervals[i][1]);
-        } else {
-            merged.push_back(intervals[i]);
-        }
-    }
-    return merged;
-}`
-    },
-    {
-      problemId: 48,
-      title: "Rotate Image",
-      titleSlug: "rotate-image",
-      difficulty: "Medium",
-      logic: "First, transpose the matrix (swap matrix[i][j] with matrix[j][i]). Second, reverse each row of the matrix.",
-      code: `void rotate(vector<vector<int>>& matrix) {
-    int n = matrix.size();
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1; j < n; j++) {
-            swap(matrix[i][j], matrix[j][i]);
-        }
-    }
-    for (int i = 0; i < n; i++) {
-        reverse(matrix[i].begin(), matrix[i].end());
-    }
-}`
-    },
-    {
-      problemId: 121,
-      title: "Best Time to Buy and Sell Stock",
-      titleSlug: "best-time-to-buy-and-sell-stock",
-      difficulty: "Easy",
-      logic: "Keep track of the minimum buy price seen so far. At each step, calculate the potential profit if we sold today, and update the max profit.",
-      code: `int maxProfit(vector<int>& prices) {
-    int minPrice = INT_MAX;
-    int maxProfit = 0;
-    for (int price : prices) {
-        minPrice = min(minPrice, price);
-        maxProfit = max(maxProfit, price - minPrice);
-    }
-    return maxProfit;
-}`
-    },
-    {
-      problemId: 238,
-      title: "Product of Array Except Self",
-      titleSlug: "product-of-array-except-self",
-      difficulty: "Medium",
-      logic: "Compute prefix products in a first pass, then multiply by suffix products computed dynamically in a second pass, using only the output array for O(1) extra space.",
-      code: `vector<int> productExceptSelf(vector<int>& nums) {
-    int n = nums.size();
-    vector<int> res(n, 1);
-    for (int i = 1; i < n; i++) {
-        res[i] = res[i - 1] * nums[i - 1];
-    }
-    int suffix = 1;
-    for (int i = n - 1; i >= 0; i--) {
-        res[i] *= suffix;
-        suffix *= nums[i];
-    }
-    return res;
-}`
-    }
-  ],
-  "string": [
-    {
-      problemId: 14,
-      title: "Longest Common Prefix",
-      titleSlug: "longest-common-prefix",
-      difficulty: "Easy",
-      logic: "Sort the strings. The common prefix of the entire set will be the common prefix between the lexicographically first and last string.",
-      code: `string longestCommonPrefix(vector<string>& strs) {
-    if (strs.empty()) return "";
-    sort(strs.begin(), strs.end());
-    string first = strs[0], last = strs.back();
-    int i = 0;
-    while (i < first.size() && i < last.size() && first[i] == last[i]) {
-        i++;
-    }
-    return first.substr(0, i);
-}`
-    },
-    {
-      problemId: 242,
-      title: "Valid Anagram",
-      titleSlug: "valid-anagram",
-      difficulty: "Easy",
-      logic: "Use a single frequency map of size 26 to increment counts for the first string and decrement counts for the second string.",
-      code: `bool isAnagram(string s, string t) {
-    if (s.length() != t.length()) return false;
-    vector<int> counts(26, 0);
-    for (int i = 0; i < s.length(); i++) {
-        counts[s[i] - 'a']++;
-        counts[t[i] - 'a']--;
-    }
-    for (int count : counts) {
-        if (count != 0) return false;
-    }
-    return true;
-}`
-    },
-    {
-      problemId: 5,
-      title: "Longest Palindromic Substring",
-      titleSlug: "longest-palindromic-substring",
-      difficulty: "Medium",
-      logic: "Expand around centers: for each index, treat it as the center of an odd and even length palindrome, expanding outwards as long as characters match.",
-      code: `string longestPalindrome(string s) {
-    if (s.empty()) return "";
-    int start = 0, maxLength = 1;
-    auto expand = [&](int left, int right) {
-        while (left >= 0 && right < s.length() && s[left] == s[right]) {
-            int len = right - left + 1;
-            if (len > maxLength) {
-                maxLength = len;
-                start = left;
-            }
-            left--;
-            right++;
-        }
-    };
-    for (int i = 0; i < s.length(); i++) {
-        expand(i, i);
-        expand(i, i + 1);
-    }
-    return s.substr(start, maxLength);
-}`
-    }
-  ],
-  "hash-table": [
-    {
-      problemId: 1,
-      title: "Two Sum",
-      titleSlug: "two-sum",
-      difficulty: "Easy",
-      logic: "Maintain a hash map of value to index. For each element, query the map for the complement (target - value).",
-      code: `vector<int> twoSum(vector<int>& nums, int target) {
-    unordered_map<int, int> seen;
-    for (int i = 0; i < nums.size(); i++) {
-        int comp = target - nums[i];
-        if (seen.count(comp)) return {seen[comp], i};
-        seen[nums[i]] = i;
-    }
-    return {};
-}`
-    },
-    {
-      problemId: 49,
-      title: "Group Anagrams",
-      titleSlug: "group-anagrams",
-      difficulty: "Medium",
-      logic: "Sort each string to use as a hash map key, grouping anagrams together in a vector of strings value.",
-      code: `vector<vector<string>> groupAnagrams(vector<string>& strs) {
-    unordered_map<string, vector<string>> groups;
-    for (string& s : strs) {
-        string key = s;
-        sort(key.begin(), key.end());
-        groups[key].push_back(s);
-    }
-    vector<vector<string>> res;
-    for (auto& pair : groups) {
-        res.push_back(pair.second);
-    }
-    return res;
-}`
-    }
-  ],
-  "two-pointers": [
-    {
-      problemId: 125,
-      title: "Valid Palindrome",
-      titleSlug: "valid-palindrome",
-      difficulty: "Easy",
-      logic: "Use two pointers starting at opposite ends. Skip non-alphanumeric characters and compare letters case-insensitively.",
-      code: `bool isPalindrome(string s) {
-    int left = 0, right = s.length() - 1;
-    while (left < right) {
-        while (left < right && !isalnum(s[left])) left++;
-        while (left < right && !isalnum(s[right])) right--;
-        if (tolower(s[left]) != tolower(s[right])) return false;
-        left++;
-        right--;
-    }
-    return true;
-}`
-    },
-    {
-      problemId: 11,
-      title: "Container With Most Water",
-      titleSlug: "container-with-most-water",
-      difficulty: "Medium",
-      logic: "Initialize pointers at the boundaries. Calculate area, then move the pointer that points to the shorter line.",
-      code: `int maxArea(vector<int>& height) {
-    int maxW = 0, l = 0, r = height.size() - 1;
-    while (l < r) {
-        maxW = max(maxW, (r - l) * min(height[l], height[r]));
-        if (height[l] < height[r]) l++;
-        else r--;
-    }
-    return maxW;
-}`
-    }
-  ],
-  "trees": [
-    {
-      problemId: 104,
-      title: "Maximum Depth of Binary Tree",
-      titleSlug: "maximum-depth-of-binary-tree",
-      difficulty: "Easy",
-      logic: "Recursively calculate the maximum depth of the left and right subtrees. The maximum depth of the current node is 1 + max(leftDepth, rightDepth).",
-      code: `int maxDepth(TreeNode* root) {
-    if (!root) return 0;
-    return 1 + max(maxDepth(root->left), maxDepth(root->right));
-}`
-    },
-    {
-      problemId: 226,
-      title: "Invert Binary Tree",
-      titleSlug: "invert-binary-tree",
-      difficulty: "Easy",
-      logic: "Recursively swap the left and right children for every node in the binary tree.",
-      code: `TreeNode* invertTree(TreeNode* root) {
-    if (!root) return nullptr;
-    TreeNode* temp = root->left;
-    root->left = invertTree(root->right);
-    root->right = invertTree(temp);
-    return root;
-}`
-    },
-    {
-      problemId: 102,
-      title: "Binary Tree Level Order Traversal",
-      titleSlug: "binary-tree-level-order-traversal",
-      difficulty: "Medium",
-      logic: "Use a queue to perform BFS, processing all nodes at the current level before moving to the next level.",
-      code: `vector<vector<int>> levelOrder(TreeNode* root) {
-    if (!root) return {};
-    vector<vector<int>> res;
-    queue<TreeNode*> q;
-    q.push(root);
-    while (!q.empty()) {
-        int size = q.size();
-        vector<int> level;
-        for (int i = 0; i < size; i++) {
-            TreeNode* curr = q.front();
-            q.pop();
-            level.push_back(curr->val);
-            if (curr->left) q.push(curr->left);
-            if (curr->right) q.push(curr->right);
-        }
-        res.push_back(level);
-    }
-    return res;
-}`
-    }
-  ],
-  "binary-tree": [
-    {
-      problemId: 100,
-      title: "Same Tree",
-      titleSlug: "same-tree",
-      difficulty: "Easy",
-      logic: "Two trees are identical if their roots are equal and their left and right subtrees are identical recursively.",
-      code: `bool isSameTree(TreeNode* p, TreeNode* q) {
-    if (!p && !q) return true;
-    if (!p || !q) return false;
-    return p->val == q->val && isSameTree(p->left, q->left) && isSameTree(p->right, q->right);
-}`
-    }
-  ],
-  "matrix": [
-    {
-      problemId: 73,
-      title: "Set Matrix Zeroes",
-      titleSlug: "set-matrix-zeroes",
-      difficulty: "Medium",
-      logic: "Use the first row and first column as marker state arrays, and track if the first row/column themselves need to be zeroed.",
-      code: `void setZeroes(vector<vector<int>>& matrix) {
-    int R = matrix.size(), C = matrix[0].size();
-    bool firstRowZero = false, firstColZero = false;
-    for (int r = 0; r < R; r++) if (matrix[r][0] == 0) firstColZero = true;
-    for (int c = 0; c < C; c++) if (matrix[0][c] == 0) firstRowZero = true;
-    for (int r = 1; r < R; r++) {
-        for (int c = 1; c < C; c++) {
-            if (matrix[r][c] == 0) {
-                matrix[r][0] = 0;
-                matrix[0][c] = 0;
-            }
-        }
-    }
-    for (int r = 1; r < R; r++) {
-        for (int c = 1; c < C; c++) {
-            if (matrix[r][0] == 0 || matrix[0][c] == 0) matrix[r][c] = 0;
-        }
-    }
-    if (firstColZero) for (int r = 0; r < R; r++) matrix[r][0] = 0;
-    if (firstRowZero) for (int c = 0; c < C; c++) matrix[0][c] = 0;
-}`
-    }
-  ],
-  "stack": [
-    {
-      problemId: 20,
-      title: "Valid Parentheses",
-      titleSlug: "valid-parentheses",
-      difficulty: "Easy",
-      logic: "Iterate through characters. Push opening brackets to a stack, and pop them when matching closing brackets are encountered.",
-      code: `bool isValid(string s) {
-    stack<char> st;
-    for (char c : s) {
-        if (c == '(' || c == '{' || c == '[') st.push(c);
-        else {
-            if (st.empty()) return false;
-            if (c == ')' && st.top() != '(') return false;
-            if (c == '}' && st.top() != '{') return false;
-            if (c == ']' && st.top() != '[') return false;
-            st.pop();
-        }
-    }
-    return st.empty();
-}`
-    }
-  ],
-  "heap-priority-queue": [
-    {
-      problemId: 215,
-      title: "Kth Largest Element in an Array",
-      titleSlug: "kth-largest-element-in-an-array",
-      difficulty: "Medium",
-      logic: "Maintain a min-heap of size K. When the heap size exceeds K, pop the smallest element. The top of the heap will contain the Kth largest element.",
-      code: `int findKthLargest(vector<int>& nums, int k) {
-    priority_queue<int, vector<int>, greater<int>> minHeap;
-    for (int num : nums) {
-        minHeap.push(num);
-        if (minHeap.size() > k) minHeap.pop();
-    }
-    return minHeap.top();
-}`
-    }
-  ]
-};
 
-// Static Dictionaries for C++ STL container cheat sheets
-const STL_CHEAT_SHEETS = {
-  "array": {
-    container: "std::vector",
-    syntax: "std::vector<int> vec;",
-    methods: [
-      { name: "push_back(val)", desc: "Appends element to end", complexity: "O(1) amortized" },
-      { name: "pop_back()", desc: "Removes last element", complexity: "O(1)" },
-      { name: "size()", desc: "Returns size", complexity: "O(1)" },
-      { name: "resize(n, val)", desc: "Resizes vector", complexity: "O(N)" },
-      { name: "reserve(n)", desc: "Reserves capacity", complexity: "O(N)" },
-      { name: "insert(pos, val)", desc: "Inserts element at pos", complexity: "O(N)" }
-    ],
-    note: "Use reserve() to avoid reallocations when size is known. Prefer emplace_back() over push_back() to construct in-place.",
-    docUrl: "https://cplusplus.com/reference/vector/vector/"
-  },
-  "string": {
-    container: "std::string",
-    syntax: "std::string str = \"hello\";",
-    methods: [
-      { name: "push_back(ch)", desc: "Appends char", complexity: "O(1)" },
-      { name: "substr(pos, len)", desc: "Returns substring", complexity: "O(len)" },
-      { name: "find(str)", desc: "Finds first occurrence of sub", complexity: "O(N * M)" },
-      { name: "append(str)", desc: "Appends string", complexity: "O(M)" },
-      { name: "length()", desc: "Returns size", complexity: "O(1)" }
-    ],
-    note: "Pass by const reference (const string&) to functions to avoid expensive copies. Use std::string_view for read-only parameters (C++17).",
-    docUrl: "https://cplusplus.com/reference/string/string/"
-  },
-  "hash-table": {
-    container: "std::unordered_map / std::unordered_set",
-    syntax: "std::unordered_map<key_type, val_type> map;\nstd::unordered_set<val_type> set;",
-    methods: [
-      { name: "insert({k, v}) / insert(val)", desc: "Inserts element", complexity: "O(1) avg / O(N) worst" },
-      { name: "erase(key)", desc: "Removes element", complexity: "O(1) avg" },
-      { name: "count(key)", desc: "Checks existence (0 or 1)", complexity: "O(1) avg" },
-      { name: "find(key)", desc: "Returns iterator to element", complexity: "O(1) avg" },
-      { name: "operator[key]", desc: "Accesses or inserts key", complexity: "O(1) avg" }
-    ],
-    note: "Unordered containers use hash tables. For ordered keys, use std::map or std::set (Red-Black trees, O(log N) operations).",
-    docUrl: "https://cplusplus.com/reference/unordered_map/unordered_map/"
-  },
-  "heap-priority-queue": {
-    container: "std::priority_queue",
-    syntax: "std::priority_queue<int> maxHeap; // Max-heap\nstd::priority_queue<int, vector<int>, greater<int>> minHeap; // Min-heap",
-    methods: [
-      { name: "push(val)", desc: "Inserts element", complexity: "O(log N)" },
-      { name: "pop()", desc: "Removes top element", complexity: "O(log N)" },
-      { name: "top()", desc: "Accesses top element", complexity: "O(1)" },
-      { name: "empty()", desc: "Checks if empty", complexity: "O(1)" },
-      { name: "size()", desc: "Returns size", complexity: "O(1)" }
-    ],
-    note: "Heapifying a vector: use priority_queue<T> pq(vec.begin(), vec.end()) which takes O(N) time instead of inserting elements one by one (O(N log N)).",
-    docUrl: "https://cplusplus.com/reference/queue/priority_queue/"
-  },
-  "stack": {
-    container: "std::stack",
-    syntax: "std::stack<int> s;",
-    methods: [
-      { name: "push(val)", desc: "Pushes element on top", complexity: "O(1)" },
-      { name: "pop()", desc: "Pops top element", complexity: "O(1)" },
-      { name: "top()", desc: "Accesses top element", complexity: "O(1)" },
-      { name: "empty()", desc: "Checks if empty", complexity: "O(1)" }
-    ],
-    note: "An adapter container, default underlying container is std::deque. Useful for monotonic stack patterns or depth-first searches.",
-    docUrl: "https://cplusplus.com/reference/stack/stack/"
-  },
-  "queue": {
-    container: "std::queue / std::deque",
-    syntax: "std::queue<int> q;\nstd::deque<int> dq; // Double-ended queue",
-    methods: [
-      { name: "push(val) / push_back(val)", desc: "Inserts at back", complexity: "O(1)" },
-      { name: "pop() / pop_front()", desc: "Removes from front", complexity: "O(1)" },
-      { name: "front()", desc: "Accesses front element", complexity: "O(1)" },
-      { name: "back()", desc: "Accesses back element", complexity: "O(1)" }
-    ],
-    note: "Standard queue only allows front pop and back push. Deque allows push/pop from both ends. Used in Breadth-First Search (BFS).",
-    docUrl: "https://cplusplus.com/reference/queue/queue/"
-  },
-  "trees": {
-    container: "TreeNode* (Custom struct) / std::map",
-    syntax: "struct TreeNode {\n    int val;\n    TreeNode *left, *right;\n};",
-    methods: [
-      { name: "left", desc: "Pointer to left child", complexity: "O(1)" },
-      { name: "right", desc: "Pointer to right child", complexity: "O(1)" },
-      { name: "val", desc: "Node data value", complexity: "O(1)" }
-    ],
-    note: "Always check for nullptr before accessing left or right children to avoid segmentation faults: if (!node) return.",
-    docUrl: "https://cplusplus.com/reference/map/map/"
-  },
-  "binary-tree": {
-    container: "TreeNode* (Custom struct)",
-    syntax: "struct TreeNode {\n    int val;\n    TreeNode *left, *right;\n};",
-    methods: [
-      { name: "left", desc: "Pointer to left child", complexity: "O(1)" },
-      { name: "right", desc: "Pointer to right child", complexity: "O(1)" },
-      { name: "val", desc: "Node data value", complexity: "O(1)" }
-    ],
-    note: "Common traversals: Inorder (L-Root-R), Preorder (Root-L-R), Postorder (L-R-Root), Level-order (BFS queue).",
-    docUrl: "https://cplusplus.com/reference/stl/"
-  },
-  "graph": {
-    container: "std::vector<std::vector<int>> / std::unordered_map<int, std::vector<int>>",
-    syntax: "vector<vector<int>> adj(n); // Adjacency list\nunordered_map<int, vector<int>> adjMap;",
-    methods: [
-      { name: "adj[u].push_back(v)", desc: "Adds directed edge u -> v", complexity: "O(1)" },
-      { name: "adj[u]", desc: "Retrieves neighbors of u", complexity: "O(1)" }
-    ],
-    note: "For dense graphs, adjacency matrix vector<vector<bool>> adj(n, vector<bool>(n, false)) allows O(1) edge lookups but uses O(N^2) space.",
-    docUrl: "https://cplusplus.com/reference/vector/vector/"
-  }
-};
 
 const getStlCheatSheet = (tagId) => {
-  return STL_CHEAT_SHEETS[tagId] || {
+  return STL_CONTAINER_DIRECTORY[tagId] || {
     container: "std::vector / std::unordered_map",
     syntax: "std::vector<int> vec;\nstd::unordered_map<int, int> map;",
     methods: [
@@ -569,37 +61,6 @@ const getStlCheatSheet = (tagId) => {
   };
 };
 
-// Static Dictionaries for Edge Cases & Pitfalls
-const EDGE_CASES = {
-  "array": [
-    { title: "Empty / Single Element", desc: "Input array size is 0 or 1. Can lead to index out of bounds if checking nums[1] directly." },
-    { title: "Integer Overflow", desc: "Subarray sums or product calculations exceed INT_MAX. Use long long for sum tracking." },
-    { title: "All Negative Numbers", desc: "For Kadane's algorithm, initial max-sum should be INT_MIN or nums[0] rather than 0." },
-    { title: "Duplicate Elements", desc: "In two-pointer searches or binary searches (e.g. LeetCode 81), duplicates can break uniqueness assumptions or O(log N) complexity." }
-  ],
-  "string": [
-    { title: "Empty String / Single Char", desc: "Ensure your loops or pointers don't access outside bounds (e.g. index 0 on empty string)." },
-    { title: "Spaces and Punctuation", desc: "In palindrome or word extraction problems, ignore non-alphanumeric characters, or handle spaces properly." },
-    { title: "ASCII vs Unicode", desc: "Verify if character set is ASCII (128 or 256 size array is enough for frequency map) or Unicode." }
-  ],
-  "hash-table": [
-    { title: "Modifying key during iteration", desc: "Never insert or delete keys from an unordered_map while iterating over it using a loop; it invalidates iterators." },
-    { title: "Default Value Insertion", desc: "Accessing a non-existent key via map[key] automatically inserts the key with a default value (e.g., 0), growing the map memory." }
-  ],
-  "binary-search": [
-    { title: "Mid Calculation Overflow", desc: "Using (l + r) / 2 causes integer overflow if l + r > INT_MAX. Use l + (r - l) / 2 instead." },
-    { title: "Infinite Loop in Bounds Update", desc: "Using l = mid can cause infinite loops. Use l = mid + 1 or adjust mid calculation." }
-  ],
-  "trees": [
-    { title: "Null Root", desc: "Input root is nullptr. Always check if (!root) return ...; first." },
-    { title: "Skewed Trees (Linked List style)", desc: "A tree can be just a single line of nodes. Recursion depth can reach O(N) and cause stack overflow. Consider iterative traversal." }
-  ],
-  "binary-tree": [
-    { title: "Null Root", desc: "Input root is nullptr. Always check if (!root) return ...; first." },
-    { title: "Skewed Trees", desc: "Recursion depth can reach O(N) and cause stack overflow. Consider iterative traversal or balancing." }
-  ]
-};
-
 const getEdgeCases = (tagId) => {
   return EDGE_CASES[tagId] || [
     { title: "Empty Input", desc: "Check size/length of inputs before processing. if (nums.empty()) return ...;" },
@@ -608,274 +69,8 @@ const getEdgeCases = (tagId) => {
   ];
 };
 
-// Static Keyword Tags mapping
-const TAG_KEYWORDS = {
-  "array": ["subarray", "subsequence", "in-place", "two pointers", "sliding window", "sorting", "contiguous"],
-  "string": ["anagram", "palindrome", "substring", "subsequence", "trie", "regex", "frequency map"],
-  "hash-table": ["frequency", "lookup O(1)", "duplicates", "two sum", "uniqueness", "map/set"],
-  "dynamic-programming": ["overlapping subproblems", "memoization", "tabulation", "optimal substructure", "state transition"],
-  "two-pointers": ["opposite ends", "sliding window", "sorted array", "slow & fast", "in-place"],
-  "trees": ["recursion", "depth-first search", "breadth-first search", "inorder/preorder", "leaf node", "BST"],
-  "binary-tree": ["level-order traversal", "inorder/preorder/postorder", "root-to-leaf", "height balanced"],
-  "heap-priority-queue": ["k-largest", "top-k", "min/max heap", "dynamic median", "merge sorted arrays"],
-  "stack": ["monotonic stack", "parentheses", "expression evaluation", "backtracking", "LIFO"],
-  "queue": ["BFS", "FIFO", "level-order", "sliding window maximum", "buffer"],
-  "binary-search": ["sorted range", "divide and conquer", "logarithmic", "monotonic function", "search space"],
-  "graph": ["vertices & edges", "DFS/BFS", "bipartite", "cycle detection", "shortest path", "topological sort"]
-};
-
 const getTagKeywords = (tagId) => {
   return TAG_KEYWORDS[tagId] || ["optimal", "complexity", "corner cases", "efficiency", "structure"];
-};
-
-// Dynamic template generator logic for the Playground
-const generatePlaygroundCode = (tagId, config) => {
-  if (tagId === 'array') {
-    const { type, condition, sumType } = config;
-    if (type === 'sliding_window') {
-      return `${sumType} slidingWindow(vector<int>& nums, ${sumType} target) {
-    int n = nums.size();
-    int left = 0, maxLength = 0;
-    ${sumType} windowState = 0; 
-    
-    for (int right = 0; right < n; ++right) {
-        // Expand window
-        windowState += nums[right];
-        
-        // Shrink window from left
-        while (${condition}) {
-            windowState -= nums[left];
-            left++;
-        }
-        
-        // Update maximum length
-        maxLength = max(maxLength, right - left + 1);
-    }
-    return maxLength;
-}`;
-    } else {
-      return `vector<int> twoPointersSearch(vector<int>& nums, int target) {
-    sort(nums.begin(), nums.end());
-    int left = 0, right = nums.size() - 1;
-    
-    while (left < right) {
-        int currentSum = nums[left] + nums[right];
-        if (currentSum == target) {
-            return {left, right};
-        } else if (currentSum < target) {
-            left++;
-        } else {
-            right--;
-        }
-    }
-    return {-1, -1};
-}`;
-    }
-  }
-
-  if (tagId === 'binary-search') {
-    const { boundType } = config;
-    if (boundType === 'lower') {
-      return `int lowerBound(vector<int>& nums, int target) {
-    int left = 0, right = nums.size();
-    while (left < right) {
-        int mid = left + (right - left) / 2;
-        if (nums[mid] >= target) {
-            right = mid;
-        } else {
-            left = mid + 1;
-        }
-    }
-    return left; // First element >= target
-}`;
-    } else {
-      return `int upperBound(vector<int>& nums, int target) {
-    int left = 0, right = nums.size();
-    while (left < right) {
-        int mid = left + (right - left) / 2;
-        if (nums[mid] > target) {
-            right = mid;
-        } else {
-            left = mid + 1;
-        }
-    }
-    return left; // First element > target
-}`;
-    }
-  }
-
-  if (tagId === 'trees' || tagId === 'binary-tree') {
-    const { returnType, nullReturn } = config;
-    return `${returnType} traverse(TreeNode* root) {
-    if (root == nullptr) return ${nullReturn};
-    
-    // Process current node
-    // ...
-    
-    ${returnType === 'void' ? '' : returnType + ' leftVal = '}traverse(root->left);
-    ${returnType === 'void' ? '' : returnType + ' rightVal = '}traverse(root->right);
-    
-    ${returnType === 'void' ? 'return;' : 'return leftVal + rightVal;'}
-}`;
-  }
-
-  return `// Playground template not configured for tag: ${tagId}`;
-};
-
-// Dry Run Tracing mock data helper
-const getDryRunTrace = (problemId, title) => {
-  const id = Number(problemId);
-  if (id === 1 || title.toLowerCase().includes("two sum")) {
-    return {
-      input: "nums = [2, 7, 11, 15], target = 9",
-      steps: [
-        "Initialize hash map: map = {}",
-        "Iterate i = 0: complement = 9 - nums[0] = 7. 7 not in map. Insert map[2] = 0.",
-        "Iterate i = 1: complement = 9 - nums[1] = 2. 2 is found in map at index 0!",
-        "Match found! Returning indices: [0, 1]."
-      ]
-    };
-  }
-  if (id === 26 || title.toLowerCase().includes("remove duplicates")) {
-    return {
-      input: "nums = [1, 1, 2]",
-      steps: [
-        "Initialize k = 1. Slow pointer pointing to index 0.",
-        "Iterate i = 1: nums[1] = 1. Equals nums[0]. Skip duplicate.",
-        "Iterate i = 2: nums[2] = 2. Different from nums[1]. Copy nums[k] = nums[2] -> nums[1] = 2. Increment k to 2.",
-        "Finished loop. Return k = 2. Modified array prefix: [1, 2]."
-      ]
-    };
-  }
-  if (title.toLowerCase().includes("binary search") || id === 704) {
-    return {
-      input: "nums = [-1, 0, 3, 5, 9, 12], target = 9",
-      steps: [
-        "Initialize left = 0, right = 5.",
-        "Step 1: mid = 0 + (5-0)/2 = 2. nums[2] = 3. 3 < 9. Set left = mid + 1 = 3.",
-        "Step 2: mid = 3 + (5-3)/2 = 4. nums[4] = 9. 9 == 9. Match found!",
-        "Return target index: 4."
-      ]
-    };
-  }
-  return {
-    input: "Default parameters...",
-    steps: [
-      "Parsing optimal solution tree...",
-      "Setting up stack/pointers configurations...",
-      "Running dry run verification passes...",
-      "All test cases passed successfully!"
-    ]
-  };
-};
-
-// Complexity Gauge Component for the speedometers
-const ComplexityGauge = ({ title, complexityStr }) => {
-  let score = 50;
-  let label = "O(N)";
-  let colorClass = "stroke-amber-400";
-  let glowColor = "rgba(245,158,11,0.4)";
-  let textClass = "text-amber-300";
-  let bgGlow = "from-amber-500/10 to-transparent";
-  let dotColor = "bg-amber-400";
-
-  const lower = complexityStr ? complexityStr.toLowerCase() : '';
-  if (lower.includes("o(1)") || lower.includes("o(log")) {
-    score = 85;
-    label = lower.includes("o(1)") ? "O(1)" : "O(log N)";
-    colorClass = "stroke-emerald-400";
-    glowColor = "rgba(52,211,153,0.4)";
-    textClass = "text-emerald-300";
-    bgGlow = "from-emerald-500/10 to-transparent";
-    dotColor = "bg-emerald-400";
-  } else if (lower.includes("o(n^2)") || lower.includes("o(2^n)") || lower.includes("o(n!)")) {
-    score = 30;
-    label = lower.includes("o(n^2)") ? "O(N²)" : "O(2^N)";
-    colorClass = "stroke-rose-500 animate-pulse";
-    glowColor = "rgba(244,63,94,0.4)";
-    textClass = "text-rose-400";
-    bgGlow = "from-rose-500/10 to-transparent";
-    dotColor = "bg-rose-500";
-  } else if (lower.includes("o(n log n)") || lower.includes("o(nlogn)")) {
-    score = 65;
-    label = "O(N log N)";
-    colorClass = "stroke-cyan-400";
-    glowColor = "rgba(34,211,238,0.4)";
-    textClass = "text-cyan-300";
-    bgGlow = "from-cyan-500/10 to-transparent";
-    dotColor = "bg-cyan-400";
-  } else if (lower.includes("o(n)") || lower.includes("linear")) {
-    score = 75;
-    label = "O(N)";
-    colorClass = "stroke-teal-400";
-    glowColor = "rgba(45,212,191,0.4)";
-    textClass = "text-teal-300";
-    bgGlow = "from-teal-500/10 to-transparent";
-    dotColor = "bg-teal-400";
-  }
-
-  const radius = 42;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
-  const labelFontSize = label.length > 6 ? 'text-[11px]' : 'text-[15px]';
-
-  return (
-    <div className={`flex flex-col items-center justify-center p-5 rounded-2xl bg-gradient-to-b ${bgGlow} border border-white/5 relative overflow-hidden group hover:border-purple-500/20 transition-all duration-300`}>
-      
-      {/* Title */}
-      <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-3 flex items-center gap-1.5">
-        <span className={`w-1.5 h-1.5 rounded-full ${dotColor} animate-pulse`}></span>
-        {title}
-      </span>
-
-      {/* Gauge SVG */}
-      <div className="relative w-28 h-28">
-        {/* Radial glow behind gauge */}
-        <div 
-          className="absolute inset-0 rounded-full opacity-30 blur-xl transition-opacity duration-500 group-hover:opacity-50" 
-          style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)` }}
-        ></div>
-
-        <svg className="w-full h-full transform -rotate-90 relative z-10" viewBox="0 0 100 100">
-          {/* Background track */}
-          <circle
-            cx="50"
-            cy="50"
-            r={radius}
-            className="stroke-slate-800/60"
-            strokeWidth="6"
-            fill="transparent"
-          />
-          {/* Progress arc */}
-          <circle
-            cx="50"
-            cy="50"
-            r={radius}
-            className={`transition-all duration-1000 ease-out ${colorClass}`}
-            strokeWidth="6"
-            fill="transparent"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            style={{ filter: `drop-shadow(0 0 6px ${glowColor})` }}
-          />
-        </svg>
-
-        {/* Center label inside gauge */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-20">
-          <span className={`${labelFontSize} font-black font-mono tracking-tight leading-tight ${textClass}`}>
-            {label}
-          </span>
-          <span className="text-[9px] text-slate-500 font-mono mt-1">{score}% eff.</span>
-        </div>
-      </div>
-
-      {/* Full complexity description below gauge */}
-      <p className="text-[10px] text-slate-300/80 text-center mt-3 leading-relaxed font-sans px-1">
-        {complexityStr || 'N/A'}
-      </p>
-    </div>
-  );
 };
 
 export default function App() {
@@ -950,7 +145,17 @@ export default function App() {
 
   // 2. Sort topic tags by frequency (represented by totalLeetcodeQuestions descending)
   const sortedTags = useMemo(() => {
-    return [...mockTagsData].sort((a, b) => b.totalLeetcodeQuestions - a.totalLeetcodeQuestions);
+    return [...mockTagsData]
+      .map(tag => {
+        const fallback = FALLBACK_TEMPLATES[tag.tagId] || [];
+        return {
+          ...tag,
+          generalTemplates: (tag.generalTemplates && tag.generalTemplates.length > 0)
+            ? tag.generalTemplates
+            : fallback
+        };
+      })
+      .sort((a, b) => b.totalLeetcodeQuestions - a.totalLeetcodeQuestions);
   }, []);
 
   // 3. Filter tags based on user search query and category
@@ -2889,38 +2094,73 @@ export default function App() {
                                             <Activity size={12} className="text-cyan-400" />
                                             Dry Run Trace
                                           </span>
-                                          <button
-                                            onClick={() => {
-                                              const trace = getDryRunTrace(solution.problemId, solution.title);
-                                              setDryRunState(prev => ({
-                                                ...prev,
-                                                [solution.problemId]: { running: true, step: 0, logs: [] }
-                                              }));
-                                              // Animate steps one by one
-                                              trace.steps.forEach((step, i) => {
-                                                setTimeout(() => {
-                                                  setDryRunState(prev => ({
-                                                    ...prev,
-                                                    [solution.problemId]: {
-                                                      ...prev[solution.problemId],
-                                                      step: i + 1,
-                                                      logs: [...(prev[solution.problemId]?.logs || []), step],
-                                                      running: i < trace.steps.length - 1,
-                                                      input: trace.input
-                                                    }
-                                                  }));
-                                                }, (i + 1) * 600);
-                                              });
-                                            }}
-                                            className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-mono font-bold uppercase hover:bg-cyan-500/20 transition-all cursor-pointer"
-                                          >
-                                            {dryRun?.running ? '⏳ Running...' : '▶ Run Trace'}
-                                          </button>
+                                          <div className="flex items-center gap-2">
+                                            {dryRun && (
+                                              <button
+                                                onClick={() => {
+                                                  setDryRunState(prev => {
+                                                    const next = { ...prev };
+                                                    delete next[solution.problemId];
+                                                    return next;
+                                                  });
+                                                }}
+                                                className="px-3 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-mono font-bold uppercase hover:bg-rose-500/20 transition-all cursor-pointer"
+                                              >
+                                                ✕ Close
+                                              </button>
+                                            )}
+                                            <button
+                                              onClick={() => {
+                                                const trace = getDryRunTrace(solution.problemId, solution.title);
+                                                setDryRunState(prev => ({
+                                                  ...prev,
+                                                  [solution.problemId]: { running: true, step: 0, logs: [] }
+                                                }));
+                                                // Animate steps one by one
+                                                trace.steps.forEach((step, i) => {
+                                                  setTimeout(() => {
+                                                    setDryRunState(prev => {
+                                                      if (!prev[solution.problemId]) {
+                                                        return prev;
+                                                      }
+                                                      return {
+                                                        ...prev,
+                                                        [solution.problemId]: {
+                                                          ...prev[solution.problemId],
+                                                          step: i + 1,
+                                                          logs: [...(prev[solution.problemId]?.logs || []), step],
+                                                          running: i < trace.steps.length - 1,
+                                                          input: trace.input
+                                                        }
+                                                      };
+                                                    });
+                                                  }, (i + 1) * 600);
+                                                });
+                                              }}
+                                              className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-mono font-bold uppercase hover:bg-cyan-500/20 transition-all cursor-pointer"
+                                            >
+                                              {dryRun?.running ? '⏳ Running...' : '▶ Run Trace'}
+                                            </button>
+                                          </div>
                                         </div>
 
                                         {dryRun && dryRun.logs && dryRun.logs.length > 0 && (
-                                          <div className="bg-[#0c0818] border border-cyan-900/30 rounded-xl p-3 space-y-2 font-mono text-[11px]">
-                                            <div className="text-cyan-400 text-[10px] pb-1 border-b border-cyan-900/20">
+                                          <div className="bg-[#0c0818] border border-cyan-900/30 rounded-xl p-3 space-y-2 font-mono text-[11px] dry-run-console relative">
+                                            {/* Close button top right of console */}
+                                            <button
+                                              onClick={() => {
+                                                setDryRunState(prev => {
+                                                  const next = { ...prev };
+                                                  delete next[solution.problemId];
+                                                  return next;
+                                                });
+                                              }}
+                                              className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 p-1 rounded-md hover:bg-slate-800/50 cursor-pointer transition-all"
+                                              title="Close Console"
+                                            >
+                                              <X size={14} />
+                                            </button>
+                                            <div className="text-cyan-400 text-[10px] pb-1 border-b border-cyan-900/20 pr-6">
                                               Input: <span className="text-slate-300">{dryRun.input}</span>
                                             </div>
                                             {dryRun.logs.map((log, lIdx) => (
