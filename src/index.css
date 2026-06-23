@@ -336,6 +336,7 @@ select option {
   background-color: #eae3f5 !important;
 }
 
+.light .bg-\[\#0e0a1b\],
 .light .bg-\[\#0e0a1b\]\/80 {
   background-color: #ffffff !important;
   border-bottom-color: rgba(124, 58, 237, 0.2) !important;
